@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rescate de partida · Poke Gacha Online</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1c2246;--mute:#5b6390;--line:#d9dcf0}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;font-family:Fredoka,system-ui,sans-serif;color:var(--ink);background:radial-gradient(circle at 50% 40%,#4a6ae0,#18235e 75%)}
+.box{width:min(520px,100%);background:#fff;border:3px solid #0f173a;border-radius:22px;box-shadow:0 6px 0 #0f173a,0 20px 50px rgba(0,0,0,.35);padding:22px;text-align:center}
+.ball{width:64px;height:64px;margin:0 auto 10px;border-radius:50%;border:5px solid #1b2340;background:linear-gradient(#ff5a5a 0 46%,#1b2340 46% 54%,#fff 54%);position:relative}
+.ball:after{content:"";position:absolute;left:50%;top:50%;width:18px;height:18px;margin:-9px;border-radius:50%;background:#fff;border:4px solid #1b2340}
+h1{margin:0 0 6px;font-size:1.45rem}
+p{margin:8px 0;line-height:1.45;color:var(--mute)}
+.sum{margin:14px 0;padding:12px;border-radius:14px;background:#f1f3ff;border:2px solid var(--line);font-weight:700;color:var(--ink)}
+button,a.btn{display:inline-block;margin-top:10px;padding:13px 22px;border:0;border-radius:14px;background:#12b886;color:#06221a;font:700 1.05rem Fredoka,system-ui,sans-serif;cursor:pointer;box-shadow:0 4px 0 #0b7a59;text-decoration:none}
+button:disabled{opacity:.6;cursor:default}
+a.btn.alt{background:#e3e6f7;color:var(--ink);box-shadow:0 4px 0 #b9bedb}
+small{display:block;margin-top:14px;color:var(--mute);font-size:.8rem;line-height:1.4}
+</style>
+</head>
+<body>
+<main class="box">
+  <div class="ball" aria-hidden="true"></div>
+  <h1>Rescate de partida</h1>
+  <p>Poke Gacha Online se ha mudado a <b>pokegachaonline.es</b>. Esta página recupera la partida que tenías <b>sin cuenta</b> en este navegador y la lleva a la nueva dirección.</p>
+  <div id="out"><p>Buscando tu partida…</p></div>
+  <small>Ábrela en el mismo navegador y dispositivo donde jugabas. Si jugabas con cuenta no hace falta: entra en pokegachaonline.es e inicia sesión.</small>
+</main>
+<script>
+(async function(){
+  var DEST="https://pokegachaonline.es/";
+  if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname))DEST=location.origin+"/";// solo para pruebas locales
+  var out=document.getElementById("out");
+  function show(h){out.innerHTML=h}
+  var raw=null;try{raw=localStorage.getItem("gacha-pkmn-v3")}catch(e){}
+  var d=null;try{d=raw&&JSON.parse(raw)}catch(e){}
+  if(!d||typeof d!=="object"||typeof d.owned!=="object"){
+    show('<div class="sum">No hemos encontrado ninguna partida sin cuenta en este navegador.</div><p>¿Jugabas en otro navegador o en otro dispositivo? Abre esta misma página allí.</p><a class="btn alt" href="'+DEST+'">Ir a pokegachaonline.es</a>');return}
+  var n=Object.keys(d.owned).length,t=Math.floor(d.t||0).toLocaleString("es");
+  show('<div class="sum">✅ Partida encontrada: '+n+' Pokémon · '+t+' 🎟️</div><button id="go" type="button">🚀 Llevar mi partida a pokegachaonline.es</button>');
+  document.getElementById("go").onclick=async function(){
+    var b=this;b.disabled=true;b.textContent="Preparando tu partida…";
+    try{
+      var bytes=new TextEncoder().encode(raw);
+      if(window.CompressionStream){var st=new Blob([bytes]).stream().pipeThrough(new CompressionStream("gzip"));bytes=new Uint8Array(await new Response(st).arrayBuffer())}
+      var s="",CH=0x8000;for(var i=0;i<bytes.length;i+=CH)s+=String.fromCharCode.apply(null,bytes.subarray(i,i+CH));
+      var enc=btoa(s).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+      location.href=DEST+"#rescate="+enc;
+    }catch(e){b.disabled=false;b.textContent="🚀 Llevar mi partida a pokegachaonline.es";show(out.innerHTML+'<p>No se ha podido preparar la partida. Prueba con otro navegador más reciente.</p>')}
+  };
+})();
+</script>
+</body>
+</html>
